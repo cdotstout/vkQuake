@@ -28,11 +28,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "cfgfile.h"
 #include "bgmusic.h"
 #include "resource.h"
+#ifndef __ANDROID__
+// Android will use native app glue
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "SDL_vulkan.h"
-#ifdef _WIN32
-#include <vulkan/vulkan_win32.h>
 #endif
 
 #define MAX_MODE_LIST	600 //johnfitz -- was 30
@@ -63,8 +63,10 @@ static qboolean	vid_initialized = false;
 static qboolean has_focus = true;
 static uint32_t num_images_acquired = 0;
 
+#ifndef __ANDROID__
 static SDL_Window	*draw_context;
 static SDL_SysWMinfo sys_wm_info;
+#endif
 
 static qboolean	vid_locked = false; //johnfitz
 static qboolean	vid_changed = false;
@@ -202,9 +204,13 @@ VID_GetCurrentWidth
 */
 static int VID_GetCurrentWidth (void)
 {
+#ifdef __ANDROID__
+	return ANativeWindow_getWidth(android_app->window);
+#else
 	int w = 0, h = 0;
 	SDL_Vulkan_GetDrawableSize(draw_context, &w, &h);
 	return w;
+#endif
 }
 
 /*
@@ -214,9 +220,13 @@ VID_GetCurrentHeight
 */
 static int VID_GetCurrentHeight (void)
 {
+#ifdef __ANDROID__
+	return ANativeWindow_getHeight(android_app->window);
+#else
 	int w = 0, h = 0;
 	SDL_Vulkan_GetDrawableSize(draw_context, &w, &h);
 	return h;
+#endif
 }
 
 /*
@@ -244,8 +254,13 @@ VID_GetCurrentBPP
 */
 static int VID_GetCurrentBPP (void)
 {
+#ifdef __ANDROID__
+	//todo: No function for this in NDK
+	return 32;
+#else
 	const Uint32 pixelFormat = SDL_GetWindowPixelFormat(draw_context);
 	return SDL_BITSPERPIXEL(pixelFormat);
+#endif
 }
 
 /*
@@ -257,7 +272,11 @@ returns true if we are in regular fullscreen or "desktop fullscren"
 */
 static qboolean VID_GetFullscreen (void)
 {
+#ifdef __ANDROID__
+	return true;
+#else
 	return (SDL_GetWindowFlags(draw_context) & SDL_WINDOW_FULLSCREEN) != 0;
+#endif
 }
 
 /*
@@ -269,7 +288,21 @@ returns true if we are specifically in "desktop fullscreen" mode
 */
 static qboolean VID_GetDesktopFullscreen (void)
 {
+#ifdef __ANDROID__
+	return true;
+#else
 	return (SDL_GetWindowFlags(draw_context) & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
+}
+
+/*
+====================
+VID_GetVSync
+====================
+*/
+static qboolean VID_GetVSync (void)
+{
+	return true;
 }
 
 /*
@@ -281,7 +314,11 @@ used by pl_win.c
 */
 void *VID_GetWindow (void)
 {
+#ifdef __ANDROID__
+	return android_app->window;
+#else
 	return draw_context;
+#endif
 }
 
 /*
@@ -291,7 +328,12 @@ VID_HasMouseOrInputFocus
 */
 qboolean VID_HasMouseOrInputFocus (void)
 {
+#ifdef __ANDROID__
+	//todo: check if app is active
+	return true;
+#else
 	return (SDL_GetWindowFlags(draw_context) & (SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_INPUT_FOCUS)) != 0;
+#endif
 }
 
 /*
@@ -301,9 +343,15 @@ VID_IsMinimized
 */
 qboolean VID_IsMinimized (void)
 {
+#ifdef __ANDROID__
+	//todo: check if app is inactive
+	return false;
+#else
 	return !(SDL_GetWindowFlags(draw_context) & SDL_WINDOW_SHOWN);
+#endif
 }
 
+#ifndef __ANDROID__
 /*
 ================
 VID_SDL2_GetDisplayMode
@@ -336,6 +384,7 @@ static SDL_DisplayMode *VID_SDL2_GetDisplayMode(int width, int height, int refre
 	}
 	return NULL;
 }
+#endif
 
 /*
 ================
@@ -344,6 +393,10 @@ VID_ValidMode
 */
 static qboolean VID_ValidMode (int width, int height, int refreshrate, int bpp, qboolean fullscreen)
 {
+#ifdef __ANDROID__
+	//todo: check if app is active
+	return true;
+#else
 // ignore width / height / bpp if vid_desktopfullscreen is enabled
 	if (fullscreen && vid_desktopfullscreen.value)
 		return true;
@@ -368,6 +421,7 @@ static qboolean VID_ValidMode (int width, int height, int refreshrate, int bpp, 
 	}
 
 	return true;
+#endif
 }
 
 /*
@@ -391,6 +445,9 @@ static qboolean VID_SetMode (int width, int height, int refreshrate, int bpp, qb
 
 	q_snprintf(caption, sizeof(caption), "vkQuake " VKQUAKE_VER_STRING);
 
+#ifdef __ANDROID__
+	// Can't be changed on Android
+#else
 	/* Create the window if needed, hidden */
 	if (!draw_context)
 	{
@@ -441,6 +498,7 @@ static qboolean VID_SetMode (int width, int height, int refreshrate, int bpp, qb
 	}
 
 	SDL_ShowWindow (draw_context);
+#endif
 
 	vid.width = VID_GetCurrentWidth();
 	vid.height = VID_GetCurrentHeight();
@@ -586,12 +644,20 @@ static void GL_InitInstance( void )
 	unsigned int sdl_extension_count;
 	vulkan_globals.debug_utils = false;
 
+#ifdef __ANDROID__
+	Sys_Printf("Load Vulkan library");
+	qboolean libLoaded = loadVulkanLibrary();
+	if (!libLoaded)
+		Sys_Error("Could not load Vulkan library!");
+	Sys_Printf("Vulkan library loaded");
+#else
 	if(!SDL_Vulkan_GetInstanceExtensions(draw_context, &sdl_extension_count, NULL))
 		Sys_Error("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
 
 	const char ** const instance_extensions = malloc(sizeof(const char *) * (sdl_extension_count + 3));
 	if(!SDL_Vulkan_GetInstanceExtensions(draw_context, &sdl_extension_count, instance_extensions))
 		Sys_Error("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
+#endif
 
 	uint32_t instance_extension_count;
 	err = vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, NULL);
@@ -678,10 +744,26 @@ static void GL_InitInstance( void )
 	if (err != VK_SUCCESS)
 		Sys_Error("Couldn't create Vulkan instance %d", err);
 
+#ifdef __ANDROID__
+	Sys_Printf("window %d", android_app->window);
+	loadVulkanFunctions(vulkan_instance);
+	Sys_Printf("Android Vulkan surface creation");
+	VkAndroidSurfaceCreateInfoKHR surface_create_info;
+	memset(&surface_create_info, 0, sizeof(surface_create_info));
+	surface_create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+	surface_create_info.window = android_app->window;
+	err = vkCreateAndroidSurfaceKHR(vulkan_instance, &surface_create_info, NULL, &vulkan_surface);
+	if (err != VK_SUCCESS)
+		Sys_Error("Couldn't create Vulkan surface");
+	Sys_Printf("Android surface created");
+
+	fpGetInstanceProcAddr = vkGetInstanceProcAddr();
+#else
 	if (!SDL_Vulkan_CreateSurface(draw_context, vulkan_instance, &vulkan_surface))
 		Sys_Error("Couldn't create Vulkan surface");
 
 	fpGetInstanceProcAddr = SDL_Vulkan_GetVkGetInstanceProcAddr();
+#endif
 
 	GET_INSTANCE_PROC_ADDR(GetDeviceProcAddr);
 	GET_INSTANCE_PROC_ADDR(GetPhysicalDeviceSurfaceSupportKHR);
@@ -1534,6 +1616,7 @@ static qboolean GL_CreateSwapChain( void )
 	uint32_t i;
 	VkResult err;
 
+<<<<<<< HEAD
 #if defined(VK_EXT_full_screen_exclusive)
 	qboolean use_exclusive_full_screen = false;
 	qboolean try_use_exclusive_full_screen = vulkan_globals.full_screen_exclusive && vulkan_globals.want_full_screen_exclusive && has_focus && VID_GetFullscreen();
@@ -1591,10 +1674,15 @@ static qboolean GL_CreateSwapChain( void )
 			Sys_Error("Couldn't get surface capabilities");
 	}
 
+#ifdef __ANDROID__
+	vid.width = vulkan_surface_capabilities.currentExtent.width;
+	vid.height = vulkan_surface_capabilities.currentExtent.height;
+#else
 	if ((vulkan_surface_capabilities.currentExtent.width != 0xFFFFFFFF || vulkan_surface_capabilities.currentExtent.width != 0xFFFFFFFF)
 		&& (vulkan_surface_capabilities.currentExtent.width != vid.width || vulkan_surface_capabilities.currentExtent.height != vid.height)) {
 		return false;
 	}
+#endif
 
 	uint32_t format_count;
 	err = fpGetPhysicalDeviceSurfaceFormatsKHR(vulkan_physical_device, vulkan_surface, &format_count, NULL);
@@ -2218,8 +2306,10 @@ void VID_Shutdown (void)
 {
 	if (vid_initialized)
 	{
+#ifndef __ANDROID__
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 		draw_context = NULL;
+#endif
 		PL_VID_Shutdown();
 	}
 }
@@ -2257,8 +2347,16 @@ VID_DescribeCurrentMode_f
 */
 static void VID_DescribeCurrentMode_f (void)
 {
+#ifdef __ANDROID__
+	if (android_app->window)
+#else
 	if (draw_context)
+<<<<<<< HEAD
 		Con_Printf("%dx%dx%d %dHz %s\n",
+=======
+#endif
+		Con_Printf("%dx%dx%d %s\n",
+>>>>>>> 12cbbc4 (Android defines)
 			VID_GetCurrentWidth(),
 			VID_GetCurrentHeight(),
 			VID_GetCurrentBPP(),
@@ -2307,6 +2405,13 @@ VID_InitModelist
 */
 static void VID_InitModelist (void)
 {
+#ifdef __ANDROID__
+	// Only one mode an Android
+	nummodes = 1;
+	modelist[0].width = VID_GetCurrentWidth();
+	modelist[0].height = VID_GetCurrentHeight();
+	modelist[0].bpp = 32;
+#else
 	const int sdlmodes = SDL_GetNumDisplayModes(0);
 	int i;
 
@@ -2325,6 +2430,7 @@ static void VID_InitModelist (void)
 			nummodes++;
 		}
 	}
+#endif
 }
 
 /*
@@ -2383,6 +2489,7 @@ void	VID_Init (void)
 
 	putenv (vid_center);	/* SDL_putenv is problematic in versions <= 1.2.9 */
 
+#ifndef __ANDROID__
 	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
 		Sys_Error("Couldn't init SDL video: %s", SDL_GetError());
 
@@ -2396,6 +2503,7 @@ void	VID_Init (void)
 		display_refreshrate = mode.refresh_rate;
 		display_bpp = SDL_BITSPERPIXEL(mode.format);
 	}
+#endif
 
 	Cvar_SetValueQuick (&vid_bpp, (float)display_bpp);
 
@@ -2583,6 +2691,9 @@ static void VID_Restart (void)
 // new proc by S.A., called by alt-return key binding.
 void	VID_Toggle (void)
 {
+#ifdef __ANDROID__
+	// Not toggle on Android
+#else
 	// disabling the fast path completely because SDL_SetWindowFullscreen was changing
 	// the window size on SDL2/WinXP and we weren't set up to handle it. --ericw
 	//
@@ -2641,6 +2752,7 @@ void	VID_Toggle (void)
 		Cvar_SetQuick (&vid_fullscreen, VID_GetFullscreen() ? (vulkan_globals.want_full_screen_exclusive ? "2" : "1") : "0");
 		Cbuf_AddText ("vid_restart\n");
 	}
+#endif
 }
 
 // For settings that are not applied during vid_restart
@@ -2661,7 +2773,11 @@ VID_SyncCvars -- johnfitz -- set vid cvars to match current video mode
 */
 void VID_SyncCvars (void)
 {
+#ifdef __ANDROID__
+	if (android_app->window)
+#else
 	if (draw_context)
+#endif
 	{
 		if (!VID_GetDesktopFullscreen())
 		{

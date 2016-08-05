@@ -143,6 +143,7 @@ void IN_StartupJoystick (void)
 	}
 	
 	// Load additional SDL2 controller definitions from gamecontrollerdb.txt
+#ifndef __ANDROID__	
 	q_snprintf (controllerdb, sizeof(controllerdb), "%s/gamecontrollerdb.txt", com_basedir);
 	nummappings = SDL_GameControllerAddMappingsFromFile(controllerdb);
 	if (nummappings > 0)
@@ -156,6 +157,7 @@ void IN_StartupJoystick (void)
 		if (nummappings > 0)
 			Con_Printf("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
 	}
+#endif	
 
 	for (i = 0; i < SDL_NumJoysticks(); i++)
 	{
@@ -191,6 +193,7 @@ void IN_ShutdownJoystick (void)
 
 void IN_Init (void)
 {
+#ifndef __ANDROID__
 	textmode = Key_TextEntry();
 
 	if (textmode)
@@ -204,6 +207,7 @@ void IN_Init (void)
 		/* discard all mouse events when input is deactivated */
 		IN_BeginIgnoringMouseEvents();
 	}
+#endif	
 
 	Cvar_RegisterVariable(&in_debugkeys);
 	Cvar_RegisterVariable(&joy_sensitivity_yaw);

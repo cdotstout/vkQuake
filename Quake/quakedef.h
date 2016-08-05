@@ -248,6 +248,10 @@ typedef struct
 
 #include "platform.h"
 
+#ifdef __ANDROID__
+#include "vulkanandroid.h"
+#endif
+
 #include <vulkan/vulkan_core.h>
 
 #include "console.h"

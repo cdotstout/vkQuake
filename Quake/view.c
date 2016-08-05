@@ -232,7 +232,7 @@ void V_DriftPitch (void)
 			cl.pitchvel = 0;
 			move = delta;
 		}
-		cl.viewangles[PITCH] += move;
+		//cl.viewangles[PITCH] += move;
 	}
 	else if (delta < 0)
 	{
@@ -241,7 +241,7 @@ void V_DriftPitch (void)
 			cl.pitchvel = 0;
 			move = -delta;
 		}
-		cl.viewangles[PITCH] -= move;
+		//cl.viewangles[PITCH] -= move;
 	}
 }
 
