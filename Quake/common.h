@@ -222,7 +222,7 @@ typedef struct
 typedef struct pack_s
 {
 	char	filename[MAX_OSPATH];
-#ifdef __ANDROID__
+#ifdef __ANDROID_LOAD_FROM_ASSETS__
 	AAsset * handle;
 #else
 	int		handle;
@@ -260,14 +260,14 @@ const char *COM_GetGameNames(qboolean full);
 qboolean COM_GameDirMatches(const char *tdirs);
 
 void COM_WriteFile (const char *filename, const void *data, int len);
-#ifdef __ANDROID__
+#ifdef __ANDROID_LOAD_FROM_ASSETS__
 int COM_OpenFile(const char *filename, AAsset *handle, unsigned int *path_id);
 #else
 int COM_OpenFile (const char *filename, int *handle, unsigned int *path_id);
 #endif
 int COM_FOpenFile (const char *filename, FILE **file, unsigned int *path_id);
 qboolean COM_FileExists (const char *filename, unsigned int *path_id);
-#ifdef __ANDROID__
+#ifdef __ANDROID_LOAD_FROM_ASSETS__
 void COM_CloseFile(AAsset *h);
 #else
 void COM_CloseFile (int h);
