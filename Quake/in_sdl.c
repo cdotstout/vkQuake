@@ -748,6 +748,10 @@ void IN_SendKeyEvents (void)
 	int key;
 	qboolean down;
 
+#ifdef __ANDROID__
+	return;
+#endif
+
 	while (SDL_PollEvent(&event))
 	{
 		switch (event.type)
