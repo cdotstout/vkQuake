@@ -1,0 +1,26 @@
+{
+    "program": {
+        "binary": "bin/app",
+        "args": [
+            "-basedir",
+            "/pkg/data"
+        ]
+    },
+    "sandbox": {
+        "dev": [
+            "class/display-controller",
+            "class/input-report"
+        ],
+        "features": [
+            "vulkan",
+            "isolated-persistent-storage"
+        ],
+        "services": [
+            "fuchsia.logger.LogSink",
+            "fuchsia.sysmem.Allocator",
+            "fuchsia.tracing.provider.Registry",
+            "fuchsia.ui.scenic.Scenic",
+            "fuchsia.vulkan.loader.Loader"
+        ]
+    }
+}
