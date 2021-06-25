@@ -39,6 +39,9 @@ void PL_SetWindowIcon (void)
 	SDL_Surface	*icon;
 	Uint32		colorkey;
 
+	if (!VID_GetWindow())
+		return;
+
 	/* SDL_RWFromConstMem() requires SDL >= 1.2.7 */
 	rwop = SDL_RWFromConstMem(bmp_bytes, sizeof(bmp_bytes));
 	if (rwop == NULL)
