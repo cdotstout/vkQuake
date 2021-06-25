@@ -497,30 +497,30 @@ void Con_Printf (const char *fmt, ...)
 	Sys_Printf ("%s", msg);
 
 // log all messages to file
-	if (con_debuglog)
-		Con_DebugLog(msg);
+// 	if (con_debuglog)
+// 		Con_DebugLog(msg);
 
-	if (!con_initialized)
-		return;
+// 	if (!con_initialized)
+// 		return;
 
-	if (cls.state == ca_dedicated)
-		return;		// no graphics mode
+// 	if (cls.state == ca_dedicated)
+// 		return;		// no graphics mode
 
-// write it to the scrollable buffer
-	Con_Print (msg);
+// // write it to the scrollable buffer
+// 	Con_Print (msg);
 
-// update the screen if the console is displayed
-	if (cls.signon != SIGNONS && !scr_disabled_for_loading )
-	{
-	// protect against infinite loop if something in SCR_UpdateScreen calls
-	// Con_Printd
-		if (!inupdate)
-		{
-			inupdate = true;
-			SCR_UpdateScreen ();
-			inupdate = false;
-		}
-	}
+// // update the screen if the console is displayed
+// 	if (cls.signon != SIGNONS && !scr_disabled_for_loading )
+// 	{
+// 	// protect against infinite loop if something in SCR_UpdateScreen calls
+// 	// Con_Printd
+// 		if (!inupdate)
+// 		{
+// 			inupdate = true;
+// 			SCR_UpdateScreen ();
+// 			inupdate = false;
+// 		}
+// 	}
 }
 
 /*

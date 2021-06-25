@@ -400,6 +400,7 @@ static qboolean VID_SetMode (int width, int height, int refreshrate, int bpp, qb
 			flags |= SDL_WINDOW_BORDERLESS;
 		
 		draw_context = SDL_CreateWindow (caption, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
+		printf("%s:%d draw_context %p\n", __FILE__, __LINE__, draw_context);
 		if (!draw_context)
 			Sys_Error ("Couldn't create window: %s", SDL_GetError());
 
@@ -421,12 +422,14 @@ static qboolean VID_SetMode (int width, int height, int refreshrate, int bpp, qb
 			Sys_Error("Couldn't set fullscreen state mode: %s", SDL_GetError());
 	}
 
+	printf("%s:%d calling SDL_SetWindowSize\n", __FILE__, __LINE__);
 	/* Set window size and display mode */
 	SDL_SetWindowSize (draw_context, width, height);
 	if (previous_display >= 0)
 		SDL_SetWindowPosition (draw_context, SDL_WINDOWPOS_CENTERED_DISPLAY(previous_display), SDL_WINDOWPOS_CENTERED_DISPLAY(previous_display));
 	else
 		SDL_SetWindowPosition(draw_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	printf("%s:%d calling SDL_SetWindowDisplayMode\n", __FILE__, __LINE__);
 	SDL_SetWindowDisplayMode (draw_context, VID_SDL2_GetDisplayMode(width, height, refreshrate, bpp));
 	SDL_SetWindowBordered (draw_context, vid_borderless.value ? SDL_FALSE : SDL_TRUE);
 
@@ -440,6 +443,7 @@ static qboolean VID_SetMode (int width, int height, int refreshrate, int bpp, qb
 			Sys_Error ("Couldn't set fullscreen state mode: %s", SDL_GetError());
 	}
 
+	printf("%s:%d calling SDL_ShowWindow\n", __FILE__, __LINE__);
 	SDL_ShowWindow (draw_context);
 
 	vid.width = VID_GetCurrentWidth();
@@ -462,6 +466,7 @@ static qboolean VID_SetMode (int width, int height, int refreshrate, int bpp, qb
 // no pending changes
 	vid_changed = false;
 
+	printf("%s:%d return true\n", __FILE__, __LINE__);
 	return true;
 }
 
@@ -2372,6 +2377,7 @@ void	VID_Init (void)
 
 	putenv (vid_center);	/* SDL_putenv is problematic in versions <= 1.2.9 */
 
+	printf("%s:%d VID_Init \n", __FILE__, __LINE__);
 	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
 		Sys_Error("Couldn't init SDL video: %s", SDL_GetError());
 
@@ -2384,6 +2390,7 @@ void	VID_Init (void)
 		display_height = mode.h;
 		display_refreshrate = mode.refresh_rate;
 		display_bpp = SDL_BITSPERPIXEL(mode.format);
+		printf("%s:%d VID_Init display_width %d display_height %d\n", __FILE__, __LINE__, (int)display_width, (int)display_height);
 	}
 
 	Cvar_SetValueQuick (&vid_bpp, (float)display_bpp);
@@ -2463,6 +2470,8 @@ void	VID_Init (void)
 		bpp = display_bpp;
 		fullscreen = false;
 	}
+	
+	printf("%s:%d VID_Init width %d height %d\n", __FILE__, __LINE__, (int)width, (int)height);
 
 	vid_initialized = true;
 
