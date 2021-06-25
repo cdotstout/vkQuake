@@ -379,6 +379,7 @@ void Sys_Error (const char *error, ...)
 	va_start (argptr, error);
 	q_vsnprintf (text, sizeof(text), error, argptr);
 	va_end (argptr);
+	printf("Sys_Error %s\n", text);
 
 	fputs (errortxt1, stderr);
 	Host_Shutdown ();
