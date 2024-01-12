@@ -251,7 +251,7 @@ extern	char	com_basedir[MAX_OSPATH];
 extern	char	com_gamedir[MAX_OSPATH];
 extern	int	file_from_pak;	// global indicating that file came from a pak
 
-#ifdef __ANDOID__
+#ifdef __ANDROID__
 //todo: naming
 AAsset *android_seek_to_file_in_pak(const char *filename, int *filelen);
 #endif

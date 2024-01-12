@@ -121,6 +121,11 @@ void Sys_FileClose (int handle)
 	sys_handles[handle] = NULL;
 }
 
+void Sys_WriteFileClose (int handle)
+{
+	return Sys_FileClose(handle);
+}
+
 void Sys_FileSeek (int handle, int position)
 {
 	fseek (sys_handles[handle], position, SEEK_SET);

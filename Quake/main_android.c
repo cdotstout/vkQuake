@@ -34,8 +34,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <android/native_activity.h>
 #include <android/asset_manager.h>
 #include <android_native_app_glue.h>
-// Uncomment to have the .pak files loaded from the .apk's asset instead an external storage
-// #define __ANDROID_LOAD_FROM_ASSETS__
 #endif
 
 /* need at least SDL_2.0.0 */
@@ -228,8 +226,6 @@ int32_t handle_app_input(struct android_app* app, AInputEvent* event)
 		int32_t button = 0;
 
 		bool down = (action != AKEY_EVENT_ACTION_UP);
-
-		Sys_Printf("%s:%d *** keyCode %d", __FILE__, __LINE__, keyCode);
 
 		if (keyCode >= AKEYCODE_A && keyCode <= AKEYCODE_Z) {
 			if (down) {
