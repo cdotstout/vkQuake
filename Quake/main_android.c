@@ -163,7 +163,7 @@ void android_init()
 
 	Host_Init();
 
-	android_write_default_cfg();
+	//android_write_default_cfg();
 
 	Sys_Printf("Initialization done");
 
@@ -229,9 +229,54 @@ int32_t handle_app_input(struct android_app* app, AInputEvent* event)
 
 		bool down = (action != AKEY_EVENT_ACTION_UP);
 
-		switch (keyCode)
+		Sys_Printf("%s:%d *** keyCode %d", __FILE__, __LINE__, keyCode);
+
+		if (keyCode >= AKEYCODE_A && keyCode <= AKEYCODE_Z) {
+			if (down) {
+				int c = 'a' + keyCode - AKEYCODE_A;
+				Sys_Printf("%s:%d *** sending char %c", __FILE__, __LINE__, c);
+				Char_Event(c);
+			}
+		}
+		else if (keyCode >= AKEYCODE_0 && keyCode <= AKEYCODE_9) {
+			if (down) {
+				int c = '0' + keyCode - AKEYCODE_0;
+				Sys_Printf("%s:%d *** sending char %c", __FILE__, __LINE__, c);
+				Char_Event(c);
+			}
+		}
+		else switch (keyCode)
 		{
+		case AKEYCODE_CTRL_LEFT:
+		case AKEYCODE_CTRL_RIGHT:
+			Key_Event(K_CTRL, down);
+			break;
+		case AKEYCODE_ALT_LEFT:
+		case AKEYCODE_ALT_RIGHT:
+			Key_Event(K_ALT, down);
+			break;
+		case AKEYCODE_SHIFT_LEFT:
+		case AKEYCODE_SHIFT_RIGHT:
+			Key_Event(K_SHIFT, down);
+			break;
+		case AKEYCODE_TAB:
+			Key_Event(K_TAB, down);
+			break;
+		case AKEYCODE_GRAVE: // for console
+			Key_Event('`', down);
+			break;
+		case AKEYCODE_SPACE:
+			Key_Event(K_SPACE, down);
+			if (down)
+				Char_Event(K_SPACE);
+			break;
+		case AKEYCODE_DEL:
+			Key_Event(K_BACKSPACE, down);
+			if (down)
+				Char_Event(K_BACKSPACE);
+			break;
 		case AKEYCODE_BUTTON_A:
+		case AKEYCODE_ENTER:
 			Key_Event(K_ENTER, down);
 			break;
 		case AKEYCODE_BUTTON_B:
@@ -366,10 +411,6 @@ void android_main(struct android_app* state)
 {
 	Sys_Printf("Start vkQuake for Android...");
 
-	// This is important, if this is missing the compiler may remove the android_main entry point
-	// And the app will fail to start
-	app_dummy();
-
 	// Store global reference to android app state
 	android_app = state;
 
@@ -379,4 +420,3 @@ void android_main(struct android_app* state)
 	android_main_loop();
 }
 #endif
-
