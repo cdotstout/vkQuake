@@ -145,6 +145,13 @@ int Sys_FileRead(AAsset *asset, void *dest, int count)
 	 	Sys_Error("asset is null");
 	return AAsset_read(asset, dest, count);
 }
+
+void Sys_WriteFileClose (int handle)
+{
+	fclose (sys_handles[handle]);
+	sys_handles[handle] = NULL;
+}
+
 #else
 int Sys_FileOpenRead (const char *path, int *hndl)
 {
@@ -188,6 +195,11 @@ void Sys_FileClose (int handle)
 {
 	fclose (sys_handles[handle]);
 	sys_handles[handle] = NULL;
+}
+
+void Sys_WriteFileClose (int handle)
+{
+	return Sys_FileClose(handle);
 }
 
 void Sys_FileSeek (int handle, int position)

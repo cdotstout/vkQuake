@@ -1299,7 +1299,7 @@ AAsset *android_seek_to_file_in_pak(const char *filename, int *filelen)
 				Sys_Printf("found it");
 				*filelen = pak->files[i].filelen;
 				file_from_pak = 1;
-				Sys_Printf("open via handle %d", pak->handle);
+				Sys_Printf("open via handle %ld", (intptr_t)pak->handle);
 				Sys_FileSeek(pak->handle, pak->files[i].filepos);
 				return pak->handle;
 			}
@@ -1609,7 +1609,7 @@ void COM_WriteFile (const char *filename, const void *data, int len)
 
 	Sys_Printf ("COM_WriteFile: %s\n", name);
 	Sys_FileWrite (handle, data, len);
-	Sys_FileClose (handle);
+	Sys_WriteFileClose (handle);
 }
 
 /*
@@ -1733,6 +1733,7 @@ static int COM_FindFile (const char *filename, int *handle, FILE **file,
 //
 // search through the path, one element at a time
 //
+
 	for (search = com_searchpaths; search; search = search->next)
 	{
 		if (search->pack)	/* look through all the pak file elements */
@@ -1954,7 +1955,7 @@ byte *COM_LoadFile (const char *path, int usehunk, unsigned int *path_id)
 				if (path_id)
 					*path_id = search->path_id;
 				//if (h)
-				Sys_Printf("open via handle %d", pak->handle);
+				Sys_Printf("open via handle %ld", (intptr_t)pak->handle);
 				h = pak->handle;
 				Sys_FileSeek(h, pak->files[i].filepos);
 				len = com_filesize;

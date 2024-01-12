@@ -168,7 +168,7 @@ qboolean Image_WriteTGA (const char *name, byte *data, int width, int height, in
 
 	Sys_FileWrite (handle, &header, TARGAHEADERSIZE);
 	Sys_FileWrite (handle, data, size);
-	Sys_FileClose (handle);
+	Sys_WriteFileClose (handle);
 
 	return true;
 }

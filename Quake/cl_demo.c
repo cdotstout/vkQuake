@@ -403,7 +403,18 @@ void CL_PlayDemo_f (void)
 
 	Con_Printf ("Playing demo from %s.\n", name);
 
+#ifdef __ANDROID_LOAD_FROM_ASSETS__
+	int len;
+	AAsset *asset = android_seek_to_file_in_pak(name, &len);
+	Sys_Printf("CL_PlayDemo_f got asset %ld len %d", (intptr_t)asset, len);
+	if (asset) {
+		byte* buffer = (byte *)calloc(1, len);
+		Sys_FileRead(asset, buffer, len);
+		cls.demofile = fmemopen(buffer, len, "r");
+	}
+#else
 	COM_FOpenFile (name, &cls.demofile, NULL);
+#endif
 	if (!cls.demofile)
 	{
 		Con_Printf ("ERROR: couldn't open %s\n", name);
