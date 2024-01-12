@@ -55,8 +55,6 @@ LOCAL_LDLIBS := -ldl -lGLESv1_CM -lGLESv2 -llog -landroid
 #
 ###########################
 
-TARGET_ARCH_ABI := armeabi-v7a
-
 LOCAL_MODULE := SDL2_static
 
 LOCAL_MODULE_FILENAME := libSDL2
