@@ -1914,8 +1914,9 @@ void GL_EndRendering (void)
 	present_info.pSwapchains = &vulkan_swapchain,
 	present_info.pImageIndices = &current_swapchain_buffer;
 	err = fpQueuePresentKHR(vulkan_globals.queue, &present_info);
-	if (err != VK_SUCCESS)
-		Sys_Error("vkQueuePresentKHR failed");
+	// TODO: handle VK_SUBOPTIMAL_KHR?
+	if (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)
+		Sys_Error("vkQueuePresentKHR failed: %d", err);
 }
 
 /*
