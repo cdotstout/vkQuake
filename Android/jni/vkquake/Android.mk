@@ -17,8 +17,6 @@ LOCAL_PATH := $(LOCAL_PATH)/../../Quake
 
 LOCAL_MODULE := vkQuake
 
-SDL_PATH := ../SDL2
-
 PROJECT_FILES := \
 $(LOCAL_PATH)/bgmusic.c \
 $(LOCAL_PATH)/cd_null.c \
@@ -97,8 +95,8 @@ $(LOCAL_PATH)/wad.c \
 $(LOCAL_PATH)/world.c \
 $(LOCAL_PATH)/zone.c
 
-PROJECT_FILES += $(LOCAL_PATH)/../Android/jni/vkQuake/include/vulkanandroid.c
-PROJECT_FILES += $(wildcard $(LOCAL_PATH)/../Shaders/compiled/*.c)
+PROJECT_FILES += $(LOCAL_PATH)/../Android/jni/vkquake/include/vulkanandroid.c
+PROJECT_FILES += $(wildcard $(LOCAL_PATH)/../Shaders/Compiled/*.c)
 
 LOCAL_CFLAGS := -DVK_USE_PLATFORM_ANDROID_KHR
 LOCAL_CFLAGS += -DVK_NO_PROTOTYPES
@@ -106,8 +104,8 @@ LOCAL_CFLAGS += -std=c99
 #Required for SDL
 LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../Android/jni/vkQuake/include
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../Android/jni/SDL2/include
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../Android/jni/vkquake/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/SDL/include
 LOCAL_C_INCLUDES += $(VULKAN_SDK)/include
 
 LOCAL_SRC_FILES := $(PROJECT_FILES)
