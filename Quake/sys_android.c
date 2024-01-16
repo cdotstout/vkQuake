@@ -261,7 +261,7 @@ void Sys_mkdir(const char *path)
 	if (rc != 0)
 	{
 		rc = errno;
-		Sys_Error("Unable to create directory %s: %s", path, strerror(rc));
+		Sys_Printf("Unable to create directory %s: %s", path, strerror(rc));
 	}
 }
 
