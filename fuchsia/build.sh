@@ -46,8 +46,6 @@ build_dir=$PWD/build-$platform-$cpu
 sysroot=$sdk_dir/arch/$cpu/sysroot
 
 export VK_SDK_PATH=$source_dir/third_party/Vulkan-Headers
-# Needed because SDL sets minimum cmake to 3.0, and 3.1 is needed to pick up CMAKE_PREFIX_PATH
-export PKG_CONFIG_LIBDIR=${source_dir}/third_party/install/lib/pkgconfig:${source_dir}/third_party/install/lib/x86_64-linux-gnu/pkgconfig:${source_dir}/third_party/install/share/pkgconfig
 
 make -f custom-deps.make TOOLCHAIN_DIR=${toolchain_dir} ../third_party/Vulkan-Headers
 make -f custom-deps.make TOOLCHAIN_DIR=${toolchain_dir} ../third_party/SDL
@@ -58,7 +56,6 @@ if [[ $platform == "linux" ]]; then
 fi
 
 if [[ $platform == "fuchsia" ]]; then
-	# Out of date
 	PLATFORM_OPTIONS="$PLATFORM_OPTIONS \
 		-DFFMPEG=NO
 		-DUSE_VULKAN=1
@@ -72,28 +69,40 @@ if [[ $platform == "fuchsia" ]]; then
 		-DFUCHSIA_SDK_DIR=$sdk_dir"
 elif [[ $platform == "linux" ]]; then
 	PLATFORM_OPTIONS="$PLATFORM_OPTIONS
-		-DCMAKE_PREFIX_PATH=${source_dir}/third_party/install
-		-DOPENAL=0
-		-DSDL_SHARED=0
-		-DSDL_ALSA=1
-		-DSDL_JACK=0
-		-DSDL_PULSEAUDIO=0
-		-DSDL_ESD=0
-		-DSDL_SHARED=0
-		-DSDL_X11=0
-		-DSDL_KMSDRM=0
-		-DSDL_WAYLAND=1
-		-DSDL_WAYLAND_SHARED=0
+	  -DSDL_SHARED=NO
+		-DFFMPEG=NO
+		-DJACK=NO
+		-DESD=NO
+		-DGLSLANG_DIR=$source_dir/neo/libs/glslang
+		-DUSE_VULKAN=1
+		-DUSE_PRECOMPILED_HEADERS=0
+		-DBUILD_STATIC_LOADER=1
 		-DCMAKE_TOOLCHAIN_FILE=$source_dir/fuchsia/CustomToolchain.cmake
 		-DTOOLCHAIN_DIR=${toolchain_dir}
 		-DTOOLCHAIN_SYSROOT=${source_dir}/third_party/sysroot/linux
-		-DCUSTOM_COMPILER_TARGET=$system_processor-linux-gnu"
-	# For alsa detection
-	PLATFORM_OPTIONS="$PLATFORM_OPTIONS
-		-DCMAKE_REQUIRED_INCLUDES=${source_dir}/third_party/install/include
-		-DCMAKE_REQUIRED_LINK_OPTIONS=-L${source_dir}/third_party/install/lib"
-	# Building static loader has a symbol conflict (and only enabled for APPLE)
-	#PLATFORM_OPTIONS="$PLATFORM_OPTIONS -DBUILD_STATIC_LOADER=1"
+		-DCUSTOM_COMPILER_TARGET=$system_processor-linux-gnu
+		-DPULSEAUDIO=0
+		-DOPENAL=0
+		-DSDL_SHARED=0
+		-DVIDEO_X11=0
+		-DVIDEO_MIR=0
+		-DVIDEO_KMSDRM=0
+		-DVIDEO_OPENGLES=0
+		-DVIDEO_WAYLAND=1
+		-DSDL_CROSS_COMPILE=1
+		-DXKBCOMMON_INCLUDE_DIR=${source_dir}/third_party/xkbcommon
+		-DXKBCOMMON_LIB=${source_dir}/third_party/xkbcommon/build/libxkbcommon.a
+		-DWAYLAND_SHARED=0
+		-DWAYLAND_FOUND=1
+		-DWAYLAND_USE_XDG_SHELL=1
+		-DWAYLAND_SCANNER=${source_dir}/third_party/wayland/build/out/bin/wayland-scanner
+		-DWAYLAND_CORE_PROTOCOL_DIR=${source_dir}/third_party/wayland/protocol
+		-DWAYLAND_PROTOCOLS_DIR=${source_dir}/third_party/wayland-protocols
+		-DWAYLAND_INCLUDE_DIRS=${source_dir}/third_party/wayland/build/out/include
+		-DWAYLAND_CLIENT_LIB=${source_dir}/third_party/wayland/build/out/lib/libwayland-client.a
+		-DWAYLAND_CURSOR_LIB=${source_dir}/third_party/wayland/build/out/lib/libwayland-cursor.a
+		-DWAYLAND_CLIENT_INCLUDE_DIR=${source_dir}/third_party/wayland/build/out/include
+		-DLIBFFI_CLIENT_LIB=${source_dir}/third_party/libffi/build/out/lib/libffi.a"
 fi
 
 echo $PLATFORM_OPTIONS
@@ -103,12 +112,12 @@ unset EDITOR
 mkdir -p $build_dir
 pushd $build_dir
 
-cmake --debug-trycompile --no-warn-unused-cli -GNinja -DCMAKE_BUILD_TYPE=Release $PLATFORM_OPTIONS $source_dir
+cmake --no-warn-unused-cli -GNinja -DCMAKE_BUILD_TYPE=Release $PLATFORM_OPTIONS $source_dir
 ninja
 
 if [[ $platform == "linux" ]]; then
 	${toolchain_dir}/bin/llvm-readelf --needed-libs $build_dir/vkQuake
-#	echo Building Linux tarball
+	echo Building Linux tarball
 #	tar -C $source_dir -cf $build_dir/base.tar base/default.cfg base/strings base/renderprogs base/demos \#
 #		base/_common.crc base/_common.resources \
 #		base/_ordered.crc base/_ordered.resources \
