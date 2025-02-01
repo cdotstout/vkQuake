@@ -1340,6 +1340,7 @@ static void COM_CheckRegistered (void)
 	{
 		Cvar_SetROM ("registered", "0");
 		Con_Printf ("Playing shareware version.\n");
+		Cvar_SetROM ("cmdline", &com_cmdline[0]);
 		if (com_modified)
 			Sys_Error ("You must have the registered version to use modified games");
 		return;
