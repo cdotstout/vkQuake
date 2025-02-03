@@ -627,7 +627,7 @@ static void GL_InitInstance( void )
 	application_info.applicationVersion = 1;
 	application_info.pEngineName = "vkQuake";
 	application_info.engineVersion = 1;
-	application_info.apiVersion = VK_API_VERSION_1_0;
+	application_info.apiVersion = VK_API_VERSION_1_1;
 
 	VkInstanceCreateInfo instance_create_info;
 	memset(&instance_create_info, 0, sizeof(instance_create_info));
@@ -663,10 +663,20 @@ static void GL_InitInstance( void )
 #endif
 
 	instance_create_info.enabledExtensionCount = sdl_extension_count + additionalExtensionCount;
+  for (int i = 0; i < instance_create_info.enabledExtensionCount; i++) {
+    Sys_Printf("Ext: %s\n", instance_create_info.ppEnabledExtensionNames[i]);
+  }
+
+  instance_create_info.enabledLayerCount = 1;
+	const char * const layer_names[] = { "VK_LAYER_FUCHSIA_imagepipe_swapchain" };
+  instance_create_info.ppEnabledLayerNames = layer_names;
+  for (int i = 0; i < instance_create_info.enabledLayerCount; i++) {
+    Sys_Printf("Layer: %s\n", instance_create_info.ppEnabledLayerNames[i]);
+  }
 
 	err = vkCreateInstance(&instance_create_info, NULL, &vulkan_instance);
 	if (err != VK_SUCCESS)
-		Sys_Error("Couldn't create Vulkan instance");
+		Sys_Error("Couldn't create Vulkan instance %d", err);
 
 	if (!SDL_Vulkan_CreateSurface(draw_context, vulkan_instance, &vulkan_surface))
 		Sys_Error("Couldn't create Vulkan surface");
@@ -763,6 +773,7 @@ static void GL_InitDevice( void )
 
 	uint32_t device_extension_count;
 	err = vkEnumerateDeviceExtensionProperties(vulkan_physical_device, NULL, &device_extension_count, NULL);
+  found_swapchain_extension = true;
 
 	if (err == VK_SUCCESS || device_extension_count > 0)
 	{
@@ -865,7 +876,7 @@ static void GL_InitDevice( void )
 
 	err = vkCreateDevice(vulkan_physical_device, &device_create_info, NULL, &vulkan_globals.device);
 	if (err != VK_SUCCESS)
-		Sys_Error("Couldn't create Vulkan device");
+		Sys_Error("Couldn't create Vulkan device %d", err);
 
 	GET_DEVICE_PROC_ADDR(CreateSwapchainKHR);
 	GET_DEVICE_PROC_ADDR(DestroySwapchainKHR);

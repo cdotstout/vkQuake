@@ -69,7 +69,7 @@ $(XKBCOMMON): $(SYSROOT)
 
 $(VULKAN_HEADERS):
 	mkdir -p $(INSTALL_ROOT)
-	git clone https://fuchsia.googlesource.com/third_party/Vulkan-Headers $(VULKAN_HEADERS)
+	git clone https://fuchsia.googlesource.com/third_party/Vulkan-Headers $(VULKAN_HEADERS) -b v1.2.203
 
 $(VULKAN_LOADER):
 	mkdir -p $(INSTALL_ROOT)

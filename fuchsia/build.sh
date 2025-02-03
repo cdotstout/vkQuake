@@ -61,6 +61,8 @@ if [[ $platform == "fuchsia" ]]; then
 		-DUSE_VULKAN=1
 		-DBUILD_STATIC_LOADER=0
 		-DSDL_SHARED=NO
+		-DCLOCK_GETTIME=1
+		-DSDL_TIMERS=1
 		-DUSE_PRECOMPILED_HEADERS=0
 		-DCMAKE_TOOLCHAIN_FILE=$source_dir/fuchsia/Fuchsia.cmake
 		-DFUCHSIA_TOOLCHAIN=$toolchain_dir
@@ -113,7 +115,7 @@ mkdir -p $build_dir
 pushd $build_dir
 
 cmake --no-warn-unused-cli -GNinja -DCMAKE_BUILD_TYPE=Release $PLATFORM_OPTIONS $source_dir
-ninja
+ninja vkQuake
 
 if [[ $platform == "linux" ]]; then
 	${toolchain_dir}/bin/llvm-readelf --needed-libs $build_dir/vkQuake

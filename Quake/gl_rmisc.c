@@ -1456,8 +1456,6 @@ void R_CreatePipelines()
 	int alpha_blend, alpha_test, fullbright_enabled;
 	VkResult err;
 
-	Sys_Printf("Creating pipelines\n");
-
 	CREATE_SHADER_MODULE(basic_vert);
 	CREATE_SHADER_MODULE(basic_frag);
 	CREATE_SHADER_MODULE(basic_alphatest_frag);

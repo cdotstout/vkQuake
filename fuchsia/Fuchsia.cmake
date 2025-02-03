@@ -6,6 +6,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_SYSTEM_NAME Fuchsia)
+add_compile_definitions(PLATFORM_UNIX)
 
 set(CMAKE_SYSROOT ${FUCHSIA_SYSROOT})
 

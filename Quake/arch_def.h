@@ -114,7 +114,6 @@
 #   endif
 #endif	/* PLATFORM_AMIGAOS3 (for convenience) */
 
-
 #if defined(_WIN64)
 #	define	PLATFORM_STRING	"Win64"
 #elif defined(PLATFORM_WINDOWS)

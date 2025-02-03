@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.13)
 project (vkQuake)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 
 # For Fuchsia
-#include(${FUCHSIA_SDK_DIR}/sdk.cmake)
+include(${FUCHSIA_SDK_DIR}/sdk.cmake)
 
 if(NOT DEFINED SDL_SHARED)
         set(SDL_SHARED YES)
