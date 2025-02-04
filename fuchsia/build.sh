@@ -130,47 +130,50 @@ if [[ $platform == "linux" ]]; then
 elif [[ $platform == "fuchsia" ]]; then
 	echo Building Fuchsia package
 
-	pkg=rbdoomthreebfg-$cpu
-	pkg_dir=$pkg
-	manifest=$build_dir/$pkg.manifest
+	pkg=vkquake
+  manifest=${build_dir}/${pkg}.manifest
 
-	echo "bin/app=RBDoom3BFG" > $manifest
-	echo "meta/doom3.cmx=../meta/doom3.cmx" >> $manifest
-	echo "meta/package=$pkg_dir/meta/package" >> $manifest
+	echo "bin/app=vkQuake" > $manifest
 
-	echo "lib/libasync-default.so=${sdk_dir}/arch/$cpu/lib/libasync-default.so" >> $manifest
-	echo "lib/libfdio.so=${sdk_dir}/arch/$cpu/lib/libfdio.so" >> $manifest
-	echo "lib/libtrace-engine.so=${sdk_dir}/arch/$cpu/lib/libtrace-engine.so" >> $manifest
-	echo "lib/libsyslog.so=${sdk_dir}/arch/$cpu/lib/libsyslog.so" >> $manifest
-	echo "lib/libvulkan.so=${sdk_dir}/arch/$cpu/lib/libvulkan.so" >> $manifest
-	echo "lib/VkLayer_image_pipe_swapchain.so=${sdk_dir}/arch/$cpu/dist/VkLayer_image_pipe_swapchain.so" >> $manifest
+  ${sdk_dir}/tools/x64/cmc compile "../meta/vkQuake.cml" --output ${build_dir}/vkquake.cm
+	echo "meta/vkquake.cm=vkquake.cm" >> $manifest
+
+  echo "{\"name\":\"${pkg}\",\"version\":\"0\"}" > ${build_dir}/meta_package
+	echo "meta/package=meta_package" >> $manifest
+
 	echo "data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain.json=${sdk_dir}/pkg/vulkan_layers/data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain.json" >> $manifest
 
 	# This layer is for testing and is not provided by the SDK
-	echo "lib/VkLayer_image_pipe_swapchain_fb.so=../prebuilt/$cpu/VkLayer_image_pipe_swapchain_fb.so" >> $manifest
-	echo "data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain_fb.json=../prebuilt/$cpu/VkLayer_image_pipe_swapchain_fb.json" >> $manifest
-	echo "lib/VkLayer_image_pipe_swapchain_copy.so=../prebuilt/$cpu/VkLayer_image_pipe_swapchain_copy.so" >> $manifest
-	echo "data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain_copy.json=../prebuilt/$cpu/VkLayer_image_pipe_swapchain_copy.json" >> $manifest
+#	echo "lib/VkLayer_image_pipe_swapchain_fb.so=../prebuilt/$cpu/VkLayer_image_pipe_swapchain_fb.so" >> $manifest
+#	echo "data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain_fb.json=../prebuilt/$cpu/VkLayer_image_pipe_swapchain_fb.json" >> $manifest
 
 	# Validation layers
-	echo "lib/VkLayer_khronos_validation.so=${sdk_dir}/arch/$cpu/dist/VkLayer_khronos_validation.so" >> $manifest
 	echo "data/vulkan/explicit_layer.d/VkLayer_khronos_validation.json=${sdk_dir}/pkg/vulkan_layers/data/vulkan/explicit_layer.d/VkLayer_khronos_validation.json" >> $manifest
 
-	echo "lib/ld.so.1=$sdk_dir/arch/$cpu/sysroot/dist/lib/ld.so.1" >> $manifest
-	echo "lib/libc++.so.2=$toolchain_dir/lib/$system_processor-unknown-fuchsia/c++/libc++.so.2" >> $manifest
-	echo "lib/libc++abi.so.1=$toolchain_dir/lib/$system_processor-unknown-fuchsia/c++/libc++abi.so.1" >> $manifest
-	echo "lib/libunwind.so.1=$toolchain_dir/lib/$system_processor-unknown-fuchsia/c++/libunwind.so.1" >> $manifest
 
-	# Generate doom3.manifest
-	python ../gen.py
-	cat doom3.manifest >> $manifest
+  cat >>$manifest <<EOF
+lib/VkLayer_khronos_validation.so=${sdk_dir}/arch/$cpu/dist/VkLayer_khronos_validation.so
+lib/libasync-default.so=${sdk_dir}/arch/$cpu/lib/libasync-default.so
+lib/libfdio.so=${sdk_dir}/arch/$cpu/lib/libfdio.so
+lib/libtrace-engine.so=${sdk_dir}/arch/$cpu/lib/libtrace-engine.so
+lib/libsyslog.so=${sdk_dir}/arch/$cpu/lib/libsyslog.so
+lib/libvulkan.so=${sdk_dir}/arch/$cpu/lib/libvulkan.so
+lib/VkLayer_image_pipe_swapchain.so=${sdk_dir}/arch/$cpu/dist/VkLayer_image_pipe_swapchain.so
+lib/ld.so.1=$sdk_dir/arch/$cpu/sysroot/dist/lib/ld.so.1
+lib/libzircon.so=$sdk_dir/arch/$cpu/sysroot/lib/libzircon.so
+lib/libc.so=$sdk_dir/arch/$cpu/sysroot/lib/libc.so
+lib/libc++.so.2=$toolchain_dir/lib/$system_processor-unknown-fuchsia/libc++.so.2
+lib/libc++abi.so.1=$toolchain_dir/lib/$system_processor-unknown-fuchsia/libc++abi.so.1
+lib/libunwind.so.1=$toolchain_dir/lib/$system_processor-unknown-fuchsia/libunwind.so.1
+lib/libvfs_internal.so=${sdk_dir}/arch/${cpu}/dist/libvfs_internal.so
+lib/libbackend_fuchsia_globals.so=${sdk_dir}/arch/${cpu}/dist/libbackend_fuchsia_globals.so
+lib/libsvc.so=${sdk_dir}/arch/${cpu}/dist/libsvc.so
+data/pak0.pak=../meta/pak0.pak
+data/vkquake.pak=../meta/vkquake.pak
+EOF
 
-	rm -rf $pkg_dir
-	mkdir $pkg_dir
-
-	$sdk_dir/tools/pm -o $pkg_dir -version 0 init
-	$sdk_dir/tools/pm -o $pkg_dir -m $manifest build
-	$sdk_dir/tools/pm -o $pkg_dir -m $manifest archive
+  ${sdk_dir}/tools/x64/ffx_tools/ffx-package package build ${manifest} --api-level 26 --out ${build_dir}
+  ${sdk_dir}/tools/x64/ffx_tools/ffx-package package archive create ${build_dir}/package_manifest.json --out ${build_dir}/package.far
 
 	popd
 

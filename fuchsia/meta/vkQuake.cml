@@ -1,0 +1,42 @@
+{
+    program: {
+        runner: "elf",
+        binary: "bin/app",
+        args: [
+            "-basedir",
+            "/pkg/data",
+            "+timedemo", "demo1.dem",
+        ]
+    },
+    capabilities: [
+        {
+            protocol: [ "fuchsia.ui.app.ViewProvider" ],
+        },
+    ],
+    expose: [
+        {
+            protocol: [ "fuchsia.ui.app.ViewProvider" ],
+            from: "self",
+            to: "parent",
+        },
+    ],
+    use: [
+        {
+            protocol: [
+                "fuchsia.sysmem.Allocator",
+                "fuchsia.sysmem2.Allocator",
+                "fuchsia.ui.composition.Allocator",
+                "fuchsia.ui.composition.Flatland",
+                "fuchsia.vulkan.loader.Loader",
+            ],
+        },
+        {
+            protocol: "fuchsia.tracing.provider.Registry",
+            availability: "optional",
+        },
+        {
+            protocol: "fuchsia.logger.LogSink",
+            from: "parent/diagnostics",
+        },
+    ],
+}
