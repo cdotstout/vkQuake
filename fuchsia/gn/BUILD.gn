@@ -1,0 +1,41 @@
+import("//build/components.gni")
+import("//build/dist/renamed_binary.gni")
+
+fuchsia_component("vkquake") {
+  manifest = "meta/vkquake.cml"
+  deps = [
+  ":binary",
+]
+}
+
+resource("binary") {
+  sources = [ "../build-fuchsia-arm64/vkQuake" ]
+  allow_binary_output_dir = true
+  outputs = [ "bin/vkquake" ]
+}
+
+resource("pak") {
+  sources = [ "vkquake.pak" ]
+  allow_binary_output_dir = true
+  outputs = [ "data/vkquake.pak" ]
+}
+
+resource("pak0") {
+  sources = [ "pak0.pak" ]
+  allow_binary_output_dir = true
+  outputs = [ "data/pak0.pak" ]
+}
+
+fuchsia_package("vkquake_pkg") {
+  package_name = "vkquake"
+  disable_elf_binaries_checks = true
+  deps = [
+    ":vkquake",
+    ":pak",
+    ":pak0",
+    "//third_party/Vulkan-Tools/cube:cube-scenic",
+    "//src/devices/bin/driver_manager",
+    "//src/lib/vulkan/swapchain:image_pipe_swapchain_layer",
+  ]
+}
+

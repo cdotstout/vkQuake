@@ -49,6 +49,7 @@ export VK_SDK_PATH=$source_dir/third_party/Vulkan-Headers
 
 make -f custom-deps.make TOOLCHAIN_DIR=${toolchain_dir} ../third_party/Vulkan-Headers
 make -f custom-deps.make TOOLCHAIN_DIR=${toolchain_dir} ../third_party/SDL
+make -f custom-deps.make TOOLCHAIN_DIR=${toolchain_dir} ../third_party/apisample
 
 if [[ $platform == "linux" ]]; then
         echo "Building deps for linux platform"

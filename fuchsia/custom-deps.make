@@ -3,6 +3,7 @@ $(error Must set TOOLCHAIN_DIR)
 endif
 
 INSTALL_ROOT=../third_party
+FUCHSIA_SDK=$(INSTALL_ROOT)/apisample
 SDL=$(INSTALL_ROOT)/SDL
 EXPAT=$(INSTALL_ROOT)/expat
 LIBFFI=$(INSTALL_ROOT)/libffi
@@ -79,6 +80,12 @@ $(VULKAN_LOADER):
 $(SDL):
 	mkdir -p $(INSTALL_ROOT)
 	git clone sso://tqgfx-internal/SDL $(SDL)
+
+$(FUCHSIA_SDK):
+	mkdir -p $(INSTALL_ROOT)
+	git clone sso://tqgfx-internal/apisample $(FUCHSIA_SDK)
+	cd $(FUCHSIA_SDK) && cipd ensure -ensure-file .dependencies.cipd -root . && ./create_cmake.py sdk
+
 
 clean:
 	rm -rf $(INSTALL_ROOT)
