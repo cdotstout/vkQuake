@@ -850,7 +850,7 @@ int UDP6_GetAddrFromName (const char *name, struct qsockaddr *addr)
 
 //=============================================================================
 
-#ifdef __linux__ //sadly there is no posix standard for querying all ipv4+ipv6 addresses.
+#if defined(__linux__) && !defined(__ANDROID__) //sadly there is no posix standard for querying all ipv4+ipv6 addresses.
 #include <ifaddrs.h>
 static struct ifaddrs *iflist;
 static double iftime; //requery sometimes.
