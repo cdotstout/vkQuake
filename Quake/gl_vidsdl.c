@@ -28,6 +28,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "cfgfile.h"
 #include "bgmusic.h"
 #include "resource.h"
+
+#include "SDL_stdinc.h"
 #ifndef __ANDROID__
 // Android will use native app glue
 #include "SDL.h"
@@ -236,6 +238,9 @@ VID_GetCurrentRefreshRate
 */
 static int VID_GetCurrentRefreshRate (void)
 {
+#ifdef __ANDROID__
+	return DEFAULT_REFRESHRATE;
+#else
 	SDL_DisplayMode mode;
 	int current_display;
 	
@@ -245,6 +250,7 @@ static int VID_GetCurrentRefreshRate (void)
 		return DEFAULT_REFRESHRATE;
 	
 	return mode.refresh_rate;
+#endif
 }
 
 /*
@@ -641,7 +647,6 @@ static void GL_InitInstance( void )
 {
 	VkResult err;
 	uint32_t i;
-	unsigned int sdl_extension_count;
 	vulkan_globals.debug_utils = false;
 
 #ifdef __ANDROID__
@@ -650,7 +655,12 @@ static void GL_InitInstance( void )
 	if (!libLoaded)
 		Sys_Error("Could not load Vulkan library!");
 	Sys_Printf("Vulkan library loaded");
+	unsigned int sdl_extension_count = 2;
+	const char ** const instance_extensions = malloc(sizeof(const char *) * (sdl_extension_count + 3));
+	instance_extensions[0] = "VK_KHR_surface";
+	instance_extensions[1] = "VK_KHR_android_surface";
 #else
+	unsigned int sdl_extension_count;
 	if(!SDL_Vulkan_GetInstanceExtensions(draw_context, &sdl_extension_count, NULL))
 		Sys_Error("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
 
@@ -733,12 +743,14 @@ static void GL_InitInstance( void )
     Sys_Printf("Ext: %s\n", instance_create_info.ppEnabledExtensionNames[i]);
   }
 
+#ifdef __Fuchsia__
   instance_create_info.enabledLayerCount = 1;
 	const char * const layer_names[] = { "VK_LAYER_FUCHSIA_imagepipe_swapchain" };
   instance_create_info.ppEnabledLayerNames = layer_names;
   for (int i = 0; i < instance_create_info.enabledLayerCount; i++) {
     Sys_Printf("Layer: %s\n", instance_create_info.ppEnabledLayerNames[i]);
   }
+#endif
 
 	err = vkCreateInstance(&instance_create_info, NULL, &vulkan_instance);
 	if (err != VK_SUCCESS)
@@ -747,7 +759,7 @@ static void GL_InitInstance( void )
 #ifdef __ANDROID__
 	Sys_Printf("window %d", android_app->window);
 	loadVulkanFunctions(vulkan_instance);
-	Sys_Printf("Android Vulkan surface creation");
+	Sys_Printf("Android Vulkan surface creation %p", vkCreateAndroidSurfaceKHR);
 	VkAndroidSurfaceCreateInfoKHR surface_create_info;
 	memset(&surface_create_info, 0, sizeof(surface_create_info));
 	surface_create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
@@ -757,7 +769,7 @@ static void GL_InitInstance( void )
 		Sys_Error("Couldn't create Vulkan surface");
 	Sys_Printf("Android surface created");
 
-	fpGetInstanceProcAddr = vkGetInstanceProcAddr();
+	fpGetInstanceProcAddr = vkGetInstanceProcAddr;
 #else
 	if (!SDL_Vulkan_CreateSurface(draw_context, vulkan_instance, &vulkan_surface))
 		Sys_Error("Couldn't create Vulkan surface");
@@ -1616,7 +1628,6 @@ static qboolean GL_CreateSwapChain( void )
 	uint32_t i;
 	VkResult err;
 
-<<<<<<< HEAD
 #if defined(VK_EXT_full_screen_exclusive)
 	qboolean use_exclusive_full_screen = false;
 	qboolean try_use_exclusive_full_screen = vulkan_globals.full_screen_exclusive && vulkan_globals.want_full_screen_exclusive && has_focus && VID_GetFullscreen();
@@ -2351,12 +2362,8 @@ static void VID_DescribeCurrentMode_f (void)
 	if (android_app->window)
 #else
 	if (draw_context)
-<<<<<<< HEAD
-		Con_Printf("%dx%dx%d %dHz %s\n",
-=======
 #endif
-		Con_Printf("%dx%dx%d %s\n",
->>>>>>> 12cbbc4 (Android defines)
+		Con_Printf("%dx%dx%d %dHz %s\n",
 			VID_GetCurrentWidth(),
 			VID_GetCurrentHeight(),
 			VID_GetCurrentBPP(),
@@ -2408,6 +2415,7 @@ static void VID_InitModelist (void)
 #ifdef __ANDROID__
 	// Only one mode an Android
 	nummodes = 1;
+	modelist = realloc(modelist, sizeof(vmode_t) * nummodes);
 	modelist[0].width = VID_GetCurrentWidth();
 	modelist[0].height = VID_GetCurrentHeight();
 	modelist[0].bpp = 32;
@@ -2594,7 +2602,9 @@ void	VID_Init (void)
 	VID_SetMode (width, height, refreshrate, bpp, fullscreen);
 
 	Con_Printf("\nVulkan Initialization\n");
+#ifndef __ANDROID__
 	SDL_Vulkan_LoadLibrary(NULL);
+#endif
 	GL_InitInstance();
 	GL_InitDevice();
 	GL_InitCommandBuffers();
