@@ -338,6 +338,10 @@ void handle_app_cmd(struct android_app * app, int32_t cmd)
 
 void android_main_loop()
 {
+	double		time, oldtime, newtime;
+
+	oldtime = 0.0;
+
 	while (1)
 	{
 		int ident;
@@ -347,7 +351,7 @@ void android_main_loop()
 
 		qboolean focused = true;
 
-		while ((ident = ALooper_pollAll(focused ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
+		while ((ident = ALooper_pollOnce(focused ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
 		{
 			if (source != NULL)
 			{
@@ -372,9 +376,12 @@ void android_main_loop()
 		if (prepared)
 		{
 			int		t;
-			double		time, oldtime, newtime;
 
 			newtime = Sys_DoubleTime();
+			if (oldtime == 0.0) {
+				oldtime = newtime;
+			}
+
 			time = newtime - oldtime;
 
 			Host_Frame(time);
