@@ -53,6 +53,7 @@ $(LOCAL_PATH)/in_sdl.c \
 $(LOCAL_PATH)/keys.c \
 $(LOCAL_PATH)/main_android.c \
 $(LOCAL_PATH)/mathlib.c \
+$(LOCAL_PATH)/mdfour.c \
 $(LOCAL_PATH)/menu.c \
 $(LOCAL_PATH)/net_bsd.c \
 $(LOCAL_PATH)/net_dgrm.c \
@@ -63,6 +64,7 @@ $(LOCAL_PATH)/pl_android.c \
 $(LOCAL_PATH)/pr_cmds.c \
 $(LOCAL_PATH)/pr_edict.c \
 $(LOCAL_PATH)/pr_exec.c \
+$(LOCAL_PATH)/pr_ext.c \
 $(LOCAL_PATH)/r_alias.c \
 $(LOCAL_PATH)/r_brush.c \
 $(LOCAL_PATH)/r_part.c \
@@ -75,7 +77,6 @@ $(LOCAL_PATH)/snd_flac.c \
 $(LOCAL_PATH)/snd_mem.c \
 $(LOCAL_PATH)/snd_mikmod.c \
 $(LOCAL_PATH)/snd_mix.c \
-$(LOCAL_PATH)/snd_modplug.c \
 $(LOCAL_PATH)/snd_mp3.c \
 $(LOCAL_PATH)/snd_mpg123.c \
 $(LOCAL_PATH)/snd_opus.c \
