@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include <jni.h>
+
 #include "quakedef.h"
 #if defined(SDL_FRAMEWORK) || defined(NO_SDL_CONFIG)
 #include <SDL2/SDL.h>
@@ -30,11 +32,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include <stdio.h>
 
-#ifdef __ANDROID__
 #include <android/native_activity.h>
 #include <android/asset_manager.h>
 #include <android_native_app_glue.h>
-#endif
 
 /* need at least SDL_2.0.0 */
 #define SDL_MIN_X	2
@@ -308,6 +308,60 @@ int32_t handle_app_input(struct android_app* app, AInputEvent* event)
 	return 0;
 }
 
+void check_for_startup_intent(struct android_app* app) {
+	JavaVM* vm = app->activity->vm;
+	JNIEnv* env;
+	jint result = (*vm)->AttachCurrentThread(vm, &env, NULL);
+    Sys_Printf("**** AttachCurrentThread returned %d", result);
+
+    jobject nativeActivity = app->activity->clazz;
+
+    // Get the Intent
+    jclass nativeActivityClass = (*env)->GetObjectClass(env, nativeActivity);
+    jmethodID getIntentMethod = (*env)->GetMethodID(env, nativeActivityClass, "getIntent", "()Landroid/content/Intent;");
+    jobject intent = (*env)->CallObjectMethod(env, nativeActivity, getIntentMethod);
+
+	Sys_Printf("**** Got intent %p", intent);
+	if (!intent) {
+		return;
+	}
+
+	jclass intentClass = (*env)->GetObjectClass(env, intent);
+	jmethodID getExtrasMethod = (*env)->GetMethodID(env, intentClass, "getExtras", "()Landroid/os/Bundle;");
+	jobject extras = (*env)->CallObjectMethod(env, intent, getExtrasMethod);
+
+	Sys_Printf("**** Got extras %p", extras);
+	if (!extras) {
+		return;
+	}
+
+	jmethodID getStringMethod = (*env)->GetMethodID(env, (*env)->GetObjectClass(env, extras), "getString", "(Ljava/lang/String;)Ljava/lang/String;");
+	jstring key = (*env)->NewStringUTF(env, "TIMEDEMO");
+	jstring value = (jstring)(*env)->CallObjectMethod(env, extras, getStringMethod, key);
+	(*env)->DeleteLocalRef(env, key);
+
+	Sys_Printf("**** Got value %p", value);
+
+	if (!value) {
+		return;
+	}
+
+	const char* valueChars = (*env)->GetStringUTFChars(env, value, NULL);
+	Sys_Printf("**** Got TIMEDEMO %s", valueChars);
+	
+	char* demo = strdup(valueChars);
+
+	(*env)->ReleaseStringUTFChars(env, value, valueChars);
+	(*env)->DeleteLocalRef(env, value);
+	
+	#define ARGC 2
+	char* argv[ARGC] = { "+timedemo", demo };
+
+	COM_InitArgv(ARGC, argv);
+
+	free(demo);
+}
+
 void handle_app_cmd(struct android_app * app, int32_t cmd)
 {
 	switch (cmd)
@@ -413,6 +467,8 @@ void android_main_loop()
 void android_main(struct android_app* state)
 {
 	Sys_Printf("Start vkQuake for Android...");
+
+	check_for_startup_intent(state);
 
 	// Store global reference to android app state
 	android_app = state;
