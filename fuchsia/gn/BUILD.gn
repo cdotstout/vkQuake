@@ -17,13 +17,13 @@ resource("binary") {
 resource("pak") {
   sources = [ "vkquake.pak" ]
   allow_binary_output_dir = true
-  outputs = [ "data/vkquake.pak" ]
+  outputs = [ "data/id1/vkquake.pak" ]
 }
 
 resource("pak0") {
   sources = [ "pak0.pak" ]
   allow_binary_output_dir = true
-  outputs = [ "data/pak0.pak" ]
+  outputs = [ "data/id1/pak0.pak" ]
 }
 
 fuchsia_package("vkquake_pkg") {
@@ -33,9 +33,8 @@ fuchsia_package("vkquake_pkg") {
     ":vkquake",
     ":pak",
     ":pak0",
-    "//third_party/Vulkan-Tools/cube:cube-scenic",
     "//src/devices/bin/driver_manager",
     "//src/lib/vulkan/swapchain:image_pipe_swapchain_layer",
+    "//third_party/Vulkan-Loader:libvulkan",
   ]
 }
-
