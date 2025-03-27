@@ -131,14 +131,14 @@ elif [[ $platform == "fuchsia" ]]; then
 	echo Building Fuchsia package
 
 	pkg=vkquake
-  manifest=${build_dir}/${pkg}.manifest
+	manifest=${build_dir}/${pkg}.manifest
 
 	echo "bin/app=vkQuake" > $manifest
 
-  ${sdk_dir}/tools/x64/cmc compile "../meta/vkQuake.cml" --output ${build_dir}/vkquake.cm
+	${sdk_dir}/tools/x64/cmc compile ../meta/vkQuake.cml --includepath=${sdk_dir}/pkg --output ${build_dir}/vkquake.cm
 	echo "meta/vkquake.cm=vkquake.cm" >> $manifest
 
-  echo "{\"name\":\"${pkg}\",\"version\":\"0\"}" > ${build_dir}/meta_package
+	echo "{\"name\":\"${pkg}\",\"version\":\"0\"}" > ${build_dir}/meta_package
 	echo "meta/package=meta_package" >> $manifest
 
 	echo "data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain.json=${sdk_dir}/pkg/vulkan_layers/data/vulkan/explicit_layer.d/VkLayer_image_pipe_swapchain.json" >> $manifest
@@ -150,34 +150,30 @@ elif [[ $platform == "fuchsia" ]]; then
 	# Validation layers
 	echo "data/vulkan/explicit_layer.d/VkLayer_khronos_validation.json=${sdk_dir}/pkg/vulkan_layers/data/vulkan/explicit_layer.d/VkLayer_khronos_validation.json" >> $manifest
 
-
   cat >>$manifest <<EOF
-lib/VkLayer_khronos_validation.so=${sdk_dir}/arch/$cpu/dist/VkLayer_khronos_validation.so
-lib/libasync-default.so=${sdk_dir}/arch/$cpu/lib/libasync-default.so
-lib/libfdio.so=${sdk_dir}/arch/$cpu/lib/libfdio.so
-lib/libtrace-engine.so=${sdk_dir}/arch/$cpu/lib/libtrace-engine.so
-lib/libsyslog.so=${sdk_dir}/arch/$cpu/lib/libsyslog.so
-lib/libvulkan.so=${sdk_dir}/arch/$cpu/lib/libvulkan.so
-lib/VkLayer_image_pipe_swapchain.so=${sdk_dir}/arch/$cpu/dist/VkLayer_image_pipe_swapchain.so
 lib/ld.so.1=$sdk_dir/arch/$cpu/sysroot/dist/lib/ld.so.1
-lib/libzircon.so=$sdk_dir/arch/$cpu/sysroot/lib/libzircon.so
 lib/libc.so=$sdk_dir/arch/$cpu/sysroot/lib/libc.so
+lib/libzircon.so=$sdk_dir/arch/$cpu/sysroot/lib/libzircon.so
 lib/libc++.so.2=$toolchain_dir/lib/$system_processor-unknown-fuchsia/libc++.so.2
 lib/libc++abi.so.1=$toolchain_dir/lib/$system_processor-unknown-fuchsia/libc++abi.so.1
 lib/libunwind.so.1=$toolchain_dir/lib/$system_processor-unknown-fuchsia/libunwind.so.1
+lib/libsyslog.so=${sdk_dir}/arch/$cpu/dist/libsyslog.so
+lib/libasync-default.so=${sdk_dir}/arch/$cpu/dist/libasync-default.so
+lib/libfdio.so=${sdk_dir}/arch/$cpu/dist/libfdio.so
+lib/libtrace-engine.so=${sdk_dir}/arch/$cpu/dist/libtrace-engine.so
+lib/libvulkan.so=${sdk_dir}/arch/$cpu/dist/libvulkan.so
 lib/libvfs_internal.so=${sdk_dir}/arch/${cpu}/dist/libvfs_internal.so
 lib/libbackend_fuchsia_globals.so=${sdk_dir}/arch/${cpu}/dist/libbackend_fuchsia_globals.so
 lib/libsvc.so=${sdk_dir}/arch/${cpu}/dist/libsvc.so
-data/pak0.pak=../meta/pak0.pak
-data/vkquake.pak=../meta/vkquake.pak
+lib/VkLayer_image_pipe_swapchain.so=${sdk_dir}/arch/$cpu/dist/VkLayer_image_pipe_swapchain.so
+lib/VkLayer_khronos_validation.so=${sdk_dir}/arch/$cpu/dist/VkLayer_khronos_validation.so
+data/id1/pak0.pak=../meta/pak0.pak
+data/id1/vkquake.pak=../meta/vkquake.pak
 EOF
 
   ${sdk_dir}/tools/x64/ffx_tools/ffx-package package build ${manifest} --api-level 26 --out ${build_dir}
   ${sdk_dir}/tools/x64/ffx_tools/ffx-package package archive create ${build_dir}/package_manifest.json --out ${build_dir}/package.far
 
-	popd
-
-	echo "Publish package:"
-	echo "$sdk_dir/tools/pm publish -a -r out/x64-release/amber-files -f $pkg-0.far"
-
+  echo Publish the package:
+  echo ${sdk_dir}/tools/x64/ffx repository publish \${FUCHSIA_ROOT_DIR}/out/arm64-release/amber-files/ --package-archive ${build_dir}/package.far
 fi

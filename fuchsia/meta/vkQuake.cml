@@ -1,4 +1,8 @@
 {
+    include: [
+        "syslog/client.shard.cml",
+        "vulkan/client.shard.cml",
+    ],
     program: {
         runner: "elf",
         binary: "bin/app",
@@ -6,7 +10,7 @@
             "-basedir",
             "/pkg/data",
             "+timedemo", "demo1.dem",
-        ]
+        ],
     },
     capabilities: [
         {
@@ -23,20 +27,11 @@
     use: [
         {
             protocol: [
-                "fuchsia.sysmem.Allocator",
-                "fuchsia.sysmem2.Allocator",
                 "fuchsia.ui.composition.Allocator",
                 "fuchsia.ui.composition.Flatland",
-                "fuchsia.vulkan.loader.Loader",
+                "fuchsia.sysmem.Allocator",
+                "fuchsia.sysmem2.Allocator",
             ],
-        },
-        {
-            protocol: "fuchsia.tracing.provider.Registry",
-            availability: "optional",
-        },
-        {
-            protocol: "fuchsia.logger.LogSink",
-            from: "parent/diagnostics",
         },
     ],
 }
