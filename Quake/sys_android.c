@@ -39,6 +39,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <pwd.h>
 #endif
 
+#include <android/native_activity.h>
+
 #if defined(SDL_FRAMEWORK) || defined(NO_SDL_CONFIG)
 #if defined(USE_SDL2)
 #include <SDL2/SDL.h>
@@ -301,10 +303,12 @@ void Sys_Printf(const char *fmt, ...)
 
 void Sys_Quit(void)
 {
-	Host_Shutdown();
-
-	exit(0);
+	// On Android we don't shutdown or exit the process
+	// so the app can inject another timedemo without incurring
+	// the fresh process overhead of JIT compiling.
+	ANativeActivity_finish(android_app->activity);
 }
+
 
 double Sys_DoubleTime(void)
 {

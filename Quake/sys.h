@@ -54,8 +54,10 @@ void Sys_mkdir (const char *path);
 //
 // system IO
 //
-FUNC_NORETURN void Sys_Quit (void);
-FUNC_NORETURN void Sys_Error (const char *error, ...) FUNC_PRINTF(1,2);
+// Removed FUNC_NORETURN because it triggers SIGILL if the functions
+// return, which is the case for the Android implementation.
+void Sys_Quit (void);
+void Sys_Error (const char *error, ...) FUNC_PRINTF(1,2);
 // an error will cause the entire program to exit
 
 void Sys_Printf (const char *fmt, ...) FUNC_PRINTF(1,2);

@@ -347,7 +347,6 @@ extern qboolean		fitzmode;
 #include <android/asset_manager.h>
 #include <android_native_app_glue.h>
 extern struct android_app* android_app;
-extern qboolean prepared;
 #endif
 
 #endif	/* _Q_COMMON_H */

@@ -82,7 +82,6 @@ static unsigned short pop[] =
 #ifdef __ANDROID__
 // Global android application state
 struct android_app* android_app;
-qboolean prepared = false;
 #endif
 
 /*

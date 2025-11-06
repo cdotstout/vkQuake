@@ -56,6 +56,8 @@ bool trigger_left = false;
 bool trigger_right = false;
 #endif
 
+static qboolean prepared = false;
+
 static void Sys_AtExit (void)
 {
 	SDL_Quit();
@@ -128,6 +130,12 @@ void android_write_default_cfg()
 
 void android_init()
 {
+	Sys_Printf("android_init: prepared %d\n", prepared);
+
+	if (prepared) {
+		return;
+	}
+
 	SDL_SetMainReady();
 
 	int status;
@@ -354,11 +362,16 @@ void check_for_startup_intent(struct android_app* app) {
 	(*env)->ReleaseStringUTFChars(env, value, valueChars);
 	(*env)->DeleteLocalRef(env, value);
 	
-	#define ARGC 2
-	char* argv[ARGC] = { "+timedemo", demo };
+	if (prepared) {
+		// Reruns the command line
+		Cbuf_InsertText ("stuffcmds");
+	} else {
+		#define ARGC 2
+		char* argv[ARGC] = { "+timedemo", demo };
 
-	COM_InitArgv(ARGC, argv);
-
+		COM_InitArgv(ARGC, argv);
+	}
+	
 	free(demo);
 }
 
@@ -366,6 +379,10 @@ void handle_app_cmd(struct android_app * app, int32_t cmd)
 {
 	switch (cmd)
 	{
+	case APP_CMD_RESUME:
+		LOGD("APP_CMD_RESUME");
+		check_for_startup_intent(app);
+		break;
 	case APP_CMD_SAVE_STATE:
 		LOGD("APP_CMD_SAVE_STATE");
 		break;
@@ -415,6 +432,7 @@ void android_main_loop()
 			{
 				LOGD("Android app destroy requested");
 				destroy = true;
+				VID_Shutdown();
 				break;
 			}
 		}
@@ -427,7 +445,7 @@ void android_main_loop()
 		}
 
 		// Render frame
-		if (prepared)
+		if (android_app->window)
 		{
 			int		t;
 
@@ -468,8 +486,6 @@ void android_main(struct android_app* state)
 {
 	Sys_Printf("Start vkQuake for Android...");
 
-	check_for_startup_intent(state);
-
 	// Store global reference to android app state
 	android_app = state;
 
@@ -477,5 +493,7 @@ void android_main(struct android_app* state)
 	state->onInputEvent = handle_app_input;
 
 	android_main_loop();
+
+	Sys_Printf("*** android_main_loop returned");
 }
 #endif

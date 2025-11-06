@@ -757,23 +757,9 @@ static void GL_InitInstance( void )
 		Sys_Error("Couldn't create Vulkan instance %d", err);
 
 #ifdef __ANDROID__
-	Sys_Printf("window %d", android_app->window);
 	loadVulkanFunctions(vulkan_instance);
-	Sys_Printf("Android Vulkan surface creation %p", vkCreateAndroidSurfaceKHR);
-	VkAndroidSurfaceCreateInfoKHR surface_create_info;
-	memset(&surface_create_info, 0, sizeof(surface_create_info));
-	surface_create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
-	surface_create_info.window = android_app->window;
-	err = vkCreateAndroidSurfaceKHR(vulkan_instance, &surface_create_info, NULL, &vulkan_surface);
-	if (err != VK_SUCCESS)
-		Sys_Error("Couldn't create Vulkan surface");
-	Sys_Printf("Android surface created");
-
 	fpGetInstanceProcAddr = vkGetInstanceProcAddr;
 #else
-	if (!SDL_Vulkan_CreateSurface(draw_context, vulkan_instance, &vulkan_surface))
-		Sys_Error("Couldn't create Vulkan surface");
-
 	fpGetInstanceProcAddr = SDL_Vulkan_GetVkGetInstanceProcAddr();
 #endif
 
@@ -905,10 +891,14 @@ static void GL_InitDevice( void )
 	VkQueueFamilyProperties * queue_family_properties = (VkQueueFamilyProperties *)malloc(vulkan_queue_count * sizeof(VkQueueFamilyProperties));
 	vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &vulkan_queue_count, queue_family_properties);
 
-	// Iterate over each queue to learn whether it supports presenting:
+	// // Iterate over each queue to learn whether it supports presenting:
 	VkBool32 *queue_supports_present = (VkBool32 *)malloc(vulkan_queue_count * sizeof(VkBool32));
-	for (i = 0; i < vulkan_queue_count; ++i)
-		fpGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, i, vulkan_surface, &queue_supports_present[i]);
+	for (i = 0; i < vulkan_queue_count; ++i) {
+		// TODO: we don't have a surface yet, instead we should assert after creating the surface that
+		// present is supported on our chosen queue.
+		//fpGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, i, vulkan_surface, &queue_supports_present[i]);
+		queue_supports_present[i] = true;
+	}
 
 	for (i = 0; i < vulkan_queue_count; ++i)
 	{
@@ -1105,6 +1095,8 @@ static void GL_InitCommandBuffers( void )
 		memset(&semaphore_create_info, 0, sizeof(semaphore_create_info));
 		semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		err = vkCreateSemaphore(vulkan_globals.device, &semaphore_create_info, NULL, &draw_complete_semaphores[i]);
+
+		command_buffer_submitted[i] = false;
 	}
 }
 
@@ -1628,6 +1620,25 @@ static qboolean GL_CreateSwapChain( void )
 	uint32_t i;
 	VkResult err;
 
+#ifdef __ANDROID__
+	Sys_Printf("Android Vulkan surface creation %p", vkCreateAndroidSurfaceKHR);
+	VkAndroidSurfaceCreateInfoKHR surface_create_info;
+	memset(&surface_create_info, 0, sizeof(surface_create_info));
+	surface_create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+	surface_create_info.window = android_app->window;
+	err = vkCreateAndroidSurfaceKHR(vulkan_instance, &surface_create_info, NULL, &vulkan_surface);
+	if (err != VK_SUCCESS)
+		Sys_Error("Couldn't create Vulkan surface");
+	Sys_Printf("Android surface created");
+
+	fpGetInstanceProcAddr = vkGetInstanceProcAddr;
+#else
+	if (!SDL_Vulkan_CreateSurface(draw_context, vulkan_instance, &vulkan_surface))
+		Sys_Error("Couldn't create Vulkan surface");
+
+	fpGetInstanceProcAddr = SDL_Vulkan_GetVkGetInstanceProcAddr();
+#endif
+
 #if defined(VK_EXT_full_screen_exclusive)
 	qboolean use_exclusive_full_screen = false;
 	qboolean try_use_exclusive_full_screen = vulkan_globals.full_screen_exclusive && vulkan_globals.want_full_screen_exclusive && has_focus && VID_GetFullscreen();
@@ -2041,6 +2052,7 @@ static void GL_DestroyRenderResources( void )
     }
 
 	fpDestroySwapchainKHR(vulkan_globals.device, vulkan_swapchain, NULL);
+	vkDestroySurfaceKHR(vulkan_instance, vulkan_surface, NULL);
 	vulkan_swapchain = VK_NULL_HANDLE;
 
 	vkDestroyRenderPass(vulkan_globals.device, vulkan_globals.ui_render_pass, NULL);
@@ -2317,6 +2329,11 @@ void VID_Shutdown (void)
 {
 	if (vid_initialized)
 	{
+		// We only destroy Vulkan resources related to swapchain here.
+		// On Android we may resume rendering later, and these render
+		// resources will be recreated automatically in GL_BeginRendering.
+		GL_DestroyRenderResources();
+
 #ifndef __ANDROID__
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 		draw_context = NULL;
