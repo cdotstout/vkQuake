@@ -83,7 +83,7 @@ $(SDL):
 
 $(FUCHSIA_SDK):
 	mkdir -p $(INSTALL_ROOT)
-	git clone sso://tqgfx-internal/apisample $(FUCHSIA_SDK)
+	git clone sso://turquoise-internal/cmake-apisample $(FUCHSIA_SDK)
 	cd $(FUCHSIA_SDK) && cipd ensure -ensure-file .dependencies.cipd -root . && ./create_cmake.py sdk
 
 
