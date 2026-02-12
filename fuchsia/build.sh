@@ -171,7 +171,7 @@ data/id1/pak0.pak=../meta/pak0.pak
 data/id1/vkquake.pak=../meta/vkquake.pak
 EOF
 
-  ${sdk_dir}/tools/x64/ffx_tools/ffx-package package build ${manifest} --api-level 26 --out ${build_dir}
+  ${sdk_dir}/tools/x64/ffx_tools/ffx-package package build ${manifest} --api-level 30 --out ${build_dir}
   ${sdk_dir}/tools/x64/ffx_tools/ffx-package package archive create ${build_dir}/package_manifest.json --out ${build_dir}/package.far
 
   echo Publish the package:
