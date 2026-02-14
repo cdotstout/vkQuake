@@ -79,7 +79,7 @@ $(VULKAN_LOADER):
 
 $(SDL):
 	mkdir -p $(INSTALL_ROOT)
-	git clone sso://tqgfx-internal/SDL $(SDL)
+	git clone git@github.com:cdotstout/sdl.git -b main $(SDL)
 
 $(FUCHSIA_SDK):
 	mkdir -p $(INSTALL_ROOT)
